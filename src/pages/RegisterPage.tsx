@@ -1,36 +1,47 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaPhone, FaLock } from "react-icons/fa";
+import { FaPhone, FaLock } from "react-icons/fa";
 import axios from "axios";
 import TextInput from "../components/TextInput";
 import authImage from "../assets/auth-image.png";
-import logo from "../assets/logo.svg";
+import defaultLogo from "../assets/logo.svg";
 
 const API_URL = "http://localhost:8000/api/v1/auth/register/";
 
 const Register = () => {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState(""); // ✅ Fixed naming issue
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [tenantName, setTenantName] = useState(""); // ✅ Store tenant name
+  const [tenantData, setTenantData] = useState({
+    name: "",
+    id: "",
+    logo: defaultLogo,
+    primaryColor: "#4F46E5",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Get tenant_name from localStorage
+  // ✅ Load tenant data from local storage
   useEffect(() => {
     const storedTenant = localStorage.getItem("company");
     if (storedTenant) {
-      const tenantData = JSON.parse(storedTenant);
-      setTenantName(tenantData.tenant); // Ensure the API returns `tenant`
+      const parsedTenant = JSON.parse(storedTenant);
+      console.log("Loaded Tenant Data:", parsedTenant);
+
+      setTenantData({
+        name: parsedTenant.tenant?.name || "",
+        id: parsedTenant.tenant?.id || "", // If the backend returns `id`
+        logo: parsedTenant.tenant?.logo || defaultLogo,
+        primaryColor: parsedTenant.tenant?.primary_color || "#4F46E5",
+      });
     }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!phone || !password || !tenantName) {
+    if (!email || !password || !tenantData.name) {
       setError("All fields are required.");
       return;
     }
@@ -43,31 +54,27 @@ const Register = () => {
     setError(null);
 
     const payload = {
-      email: phone, // ✅ API expects `email`, so we're sending the phone as the unique identifier
+      email,
       password,
-      tenant_name: tenantName, // ✅ Auto-filled from localStorage
+      tenant_name: tenantData.name, // ✅ Use stored tenant name
     };
 
     try {
-      console.log("Making API Request to:", API_URL);
+      console.log("Sending Payload:", payload);
       const response = await axios.post(API_URL, payload, {
         headers: { "Content-Type": "application/json" },
       });
 
       console.log("API Response:", response.data);
-
-      // ✅ Save user object & token in LocalStorage
-      localStorage.setItem("user", JSON.stringify(response.data));
-
-      // ✅ Redirect to Login Page
-      navigate("/login");
+      localStorage.setItem("user", JSON.stringify(response.data)); // ✅ Store user data
+      navigate("/login"); // ✅ Redirect to login page
     } catch (err: any) {
       console.error("Full API Error:", err);
       console.error("Error Response:", err.response?.data);
 
       const errorMessage =
+        err.response?.data?.tenant_name ||
         err.response?.data?.message ||
-        err.response?.data?.error ||
         "Failed to register. Please try again.";
 
       setError(errorMessage);
@@ -87,9 +94,9 @@ const Register = () => {
       {/* Right Form Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-8 md:px-16">
         <div className="w-full max-w-md bg-white p-10 rounded-xl shadow-xl">
-          {/* Logo */}
+          {/* Tenant Branding Logo */}
           <div className="flex justify-start mb-6">
-            <img src={logo} alt="RentalsKE Logo" className="h-10" />
+            <img src={tenantData.logo} alt="Tenant Logo" className="h-10" />
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Create An Account and Get Started</h1>
@@ -101,9 +108,9 @@ const Register = () => {
           <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
             <TextInput
               icon={<FaPhone className="text-gray-500" />}
-              placeholder="Phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Email Address"
+              value={email} // ✅ Fixed state usage
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <TextInput
@@ -115,8 +122,11 @@ const Register = () => {
             />
 
             {/* Auto-filled Tenant Name */}
-            <div className="bg-gray-100 p-3 rounded-lg text-gray-800 font-semibold">
-              Tenant: {tenantName || "Loading..."}
+            <div
+              className="bg-gray-100 p-3 rounded-lg text-gray-800 font-semibold"
+              style={{ borderLeft: `5px solid ${tenantData.primaryColor}` }}
+            >
+              Tenant: {tenantData.name || "Loading..."}
             </div>
 
             {/* Terms & Conditions */}
@@ -138,8 +148,9 @@ const Register = () => {
             {/* Continue Button */}
             <button
               type="submit"
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium text-lg hover:bg-indigo-700 transition"
+              className="w-full text-white py-3 rounded-lg font-medium text-lg hover:opacity-90 transition"
               disabled={loading}
+              style={{ backgroundColor: tenantData.primaryColor }}
             >
               {loading ? "Registering..." : "Continue"}
             </button>
