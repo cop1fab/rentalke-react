@@ -9,12 +9,20 @@ interface ListingsProps {
   tenantId: string | null;
   accessToken: string | null;
   primaryColor?: string;
-  onUpdateListing: (updatedListing: any) => void; // ✅ Ensure this is passed from Dashboard
+  onUpdateListing: (updatedListing: any) => void;
+  onDeleteListing: (listingId: number) => void;  // ✅ Added function for deleting listings
 }
 
 const API_BASE_URL = "http://localhost:8000/api/v1";
 
-const Listings: React.FC<ListingsProps> = ({ listings, tenantId, accessToken, primaryColor, onUpdateListing }) => {
+const Listings: React.FC<ListingsProps> = ({
+  listings,
+  tenantId,
+  accessToken,
+  primaryColor,
+  onUpdateListing,
+  onDeleteListing,
+}) => {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [selectedListing, setSelectedListing] = useState<any | null>(null);
   const [editingListing, setEditingListing] = useState<any | null>(null);
@@ -40,48 +48,42 @@ const Listings: React.FC<ListingsProps> = ({ listings, tenantId, accessToken, pr
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdown]);
 
-  // ✅ Handle Soft Delete
-// ✅ Handle Soft Delete with Debugging
-const handleSoftDelete = async (listingId: number) => {
-  if (!tenantId || !accessToken) {
-    console.error("🚨 Missing Tenant ID or Access Token", { tenantId, accessToken });
-    return;
-  }
+  // ✅ Handle Hard Delete
+  const handleHardDelete = async (listingId: number) => {
+    if (!tenantId || !accessToken) {
+      console.error("🚨 Missing Tenant ID or Access Token");
+      return;
+    }
 
-  const apiUrl = `${API_BASE_URL}/listings/${tenantId}/cars/${listingId}/soft-delete/`;
-  console.log("🔗 Soft Deleting:", apiUrl);
+    if (!window.confirm("⚠️ Are you sure you want to permanently delete this listing? This action cannot be undone.")) {
+      return;
+    }
 
-  try {
-    const response = await axios.put(
-      apiUrl,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const apiUrl = `${API_BASE_URL}/listings/${tenantId}/cars/${listingId}/delete/`;
+    console.log("🗑️ Sending Hard Delete Request to:", apiUrl);
 
-    console.log("✅ Soft Delete Response:", response.data);
+    try {
+      await axios.delete(apiUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-    // ✅ Update listing status locally
-    onUpdateListing({ id: listingId, is_deleted: true });
+      console.log("✅ Listing Successfully Deleted:", listingId);
 
-  } catch (error: any) {
-    console.error("❌ Error Soft Deleting:", error.response?.data || error);
-  }
-};
+      // ✅ Remove from UI without reload
+      onDeleteListing(listingId);
+
+    } catch (error: any) {
+      console.error("❌ Error Hard Deleting:", error.response?.data || error);
+      alert(`Hard delete failed: ${error.response?.data?.error || "Unknown error"}`);
+    }
+  };
 
   return (
     <div className="max-w-[90%] mx-auto mt-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings.length > 0 ? (
           listings.map((listing, index) => (
-            <div
-              key={listing.id}
-              className={`relative bg-white shadow-lg rounded-2xl p-5 w-full max-w-sm ${listing.is_deleted ? "opacity-50" : ""}`}
-            >
+            <div key={listing.id} className="relative bg-white shadow-lg rounded-2xl p-5 w-full max-w-sm">
               {/* ✅ Red Overlay if Soft Deleted */}
               {listing.is_deleted && (
                 <div className="absolute inset-0 bg-red-500 bg-opacity-50 flex items-center justify-center text-white font-bold text-lg rounded-2xl">
@@ -115,11 +117,8 @@ const handleSoftDelete = async (listingId: number) => {
                     </button>
                     <button
                       className="block px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-100 w-full text-left"
-                      onClick={() => handleSoftDelete(listing.id)}
+                      onClick={() => handleHardDelete(listing.id)}
                     >
-                      Soft Delete
-                    </button>
-                    <button className="block px-4 py-2 text-sm text-red-600 hover:bg-red-100 w-full text-left">
                       Hard Delete
                     </button>
                   </div>
@@ -128,11 +127,11 @@ const handleSoftDelete = async (listingId: number) => {
 
               {/* Listing Details */}
               <h3 className="text-lg font-semibold text-gray-900">{listing.brand} | {listing.type}</h3>
-              <p className="text-sm text-gray-600">Price per day: ${listing.price_per_day}</p>
+              <p className="text-sm text-gray-600">Price per day: KES {listing.price_per_day}</p>
               <p className="text-sm text-gray-600">State of charge: {listing.state_of_charge}%</p>
 
-              {/* Display Car Image (Check for undefined photos) */}
-              {listing.photos && listing.photos.length > 0 ? (
+              {/* Display Car Image */}
+              {listing.photos?.length > 0 ? (
                 <img src={listing.photos[0].image} alt="Car" className="w-full h-32 object-cover mt-4 rounded-lg" />
               ) : (
                 <div className="w-full h-32 bg-gray-200 mt-4 rounded-lg flex items-center justify-center">

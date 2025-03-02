@@ -36,6 +36,10 @@ const Dashboard = () => {
       const parsedUser = JSON.parse(storedUser);
       const parsedTenant = JSON.parse(storedTenant);
 
+      console.log("✅ Loaded User:", parsedUser);
+      console.log("✅ Loaded Tenant:", parsedTenant);
+      console.log("✅ Loaded Access Token:", accessToken);
+
       setUser({
         name: parsedUser.email,
         role: parsedUser.role || "CLIENT",
@@ -58,10 +62,12 @@ const Dashboard = () => {
   // ✅ Fetch Listings
   const fetchListings = async (tenantId: number, token: string) => {
     try {
+      console.log("📥 Fetching listings for tenant ID:", tenantId);
       const response = await axios.get(`${API_BASE_URL}/listings/${tenantId}/cars/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setListings(response.data);
+      console.log("✅ Listings fetched successfully:", response.data);
     } catch (error) {
       console.error("❌ Error fetching listings:", error);
     }
@@ -69,11 +75,13 @@ const Dashboard = () => {
 
   // ✅ Handle New Listing Submission
   const handleNewListing = (newListing: any) => {
+    console.log("🚀 Adding new listing:", newListing);
     setListings((prevListings) => [newListing, ...prevListings]);
   };
 
   // ✅ Handle Listing Update
   const handleUpdateListing = (updatedListing: any) => {
+    console.log("🔄 Updating listing:", updatedListing);
     setListings((prevListings) =>
       prevListings.map((listing) =>
         listing.id === updatedListing.id ? updatedListing : listing
@@ -81,15 +89,27 @@ const Dashboard = () => {
     );
   };
 
+  // ✅ Handle Listing Deletion
+  const handleDeleteListing = (listingId: number) => {
+    console.log("🗑️ Removing listing from state:", listingId);
+    setListings((prevListings) => prevListings.filter((listing) => listing.id !== listingId));
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar logo={tenant.logo} primaryColor={tenant.primaryColor} />
       <div className="flex flex-col flex-grow">
-        <DashboardNavbar primaryColor={tenant.primaryColor} user={user ?? { name: "Guest", role: "CLIENT", avatar: defaultAvatar }} />
+        <DashboardNavbar
+          primaryColor={tenant.primaryColor}
+          user={user ?? { name: "Guest", role: "CLIENT", avatar: defaultAvatar }}
+        />
 
         <ListingControls
           primaryColor={tenant.primaryColor}
-          onAddListing={() => setIsModalOpen(true)}
+          onAddListing={() => {
+            console.log("✅ Opening Modal...");
+            setIsModalOpen(true);
+          }}
         />
 
         <main className="p-6">
@@ -98,13 +118,17 @@ const Dashboard = () => {
             tenantId={user?.tenantId ?? null}
             accessToken={user?.accessToken ?? null}
             onUpdateListing={handleUpdateListing} // ✅ Ensure update works properly
+            onDeleteListing={handleDeleteListing} // ✅ Ensure delete works properly
           />
         </main>
 
         {/* ✅ Add Listing Modal */}
         {isModalOpen && (
           <AddListingModal
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              console.log("❌ Closing Modal");
+              setIsModalOpen(false);
+            }}
             onAdd={handleNewListing}
             tenantId={user?.tenantId ?? ""}
             accessToken={user?.accessToken ?? ""}
