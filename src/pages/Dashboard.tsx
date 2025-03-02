@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar";
 import DashboardNavbar from "../components/DashboardHeader";
 import ListingControls from "../components/ListingControls";
 import Listings from "../components/Listing";
-import AddListingModal from "../components/AddListingModal"; // ✅ Import modal
+import AddListingModal from "../components/AddListingModal";
 import defaultLogo from "../assets/logo.svg";
 import defaultAvatar from "../assets/men.png";
 
@@ -24,24 +24,28 @@ const Dashboard = () => {
     accessToken: string | null;
   } | null>(null);
 
-  const [listings, setListings] = useState<any[]>([]); // ✅ Store listings
-  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ Track modal state
+  const [listings, setListings] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedTenant = localStorage.getItem("tenant");
-    const accessToken: string | null = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("accessToken");
 
-    if (storedUser && storedTenant) {
+    if (storedUser && storedTenant && accessToken) {
       const parsedUser = JSON.parse(storedUser);
       const parsedTenant = JSON.parse(storedTenant);
+
+      console.log("✅ Loaded User:", parsedUser);
+      console.log("✅ Loaded Tenant:", parsedTenant);
+      console.log("✅ Loaded Access Token:", accessToken);
 
       setUser({
         name: parsedUser.email,
         role: parsedUser.role || "CLIENT",
         avatar: defaultAvatar,
-        tenantId: parsedUser.tenant?.id || null,
-        accessToken: accessToken ?? null, // ✅ Ensure it's never undefined
+        tenantId: parsedTenant.id || null,
+        accessToken,
       });
 
       setTenant({
@@ -49,20 +53,26 @@ const Dashboard = () => {
         primaryColor: parsedTenant.primary_color || "#4F46E5",
       });
 
-      // ✅ Fetch Listings if Tenant ID & Token exist
-      if (parsedUser?.tenant?.id && accessToken) {
-        fetchListings(parsedUser.tenant.id, accessToken);
-      }
+      fetchListings(parsedTenant.id, accessToken);
+    } else {
+      console.warn("🚨 Missing tenant or accessToken in localStorage.");
     }
   }, []);
+
+  // ✅ Watch isModalOpen to confirm it's toggling
+  useEffect(() => {
+    console.log("📌 Modal Open State:", isModalOpen);
+  }, [isModalOpen]);
 
   // ✅ Fetch Listings
   const fetchListings = async (tenantId: number, token: string) => {
     try {
+      console.log("📥 Fetching listings for tenant ID:", tenantId);
       const response = await axios.get(`${API_BASE_URL}/listings/${tenantId}/cars/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setListings(response.data);
+      console.log("✅ Listings fetched successfully:", response.data);
     } catch (error) {
       console.error("❌ Error fetching listings:", error);
     }
@@ -70,45 +80,42 @@ const Dashboard = () => {
 
   // ✅ Handle New Listing Submission
   const handleNewListing = (newListing: any) => {
-    setListings((prevListings) => [newListing, ...prevListings]); // Add new listing
+    console.log("🚀 Adding new listing:", newListing);
+    setListings((prevListings) => [newListing, ...prevListings]);
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar logo={tenant.logo} primaryColor={tenant.primaryColor} />
       <div className="flex flex-col flex-grow">
-        <DashboardNavbar
-          primaryColor={tenant.primaryColor}
-          user={user ?? { name: "Guest", role: "CLIENT", avatar: defaultAvatar }}
-        />
+        <DashboardNavbar primaryColor={tenant.primaryColor} user={user ?? { name: "Guest", role: "CLIENT", avatar: defaultAvatar }} />
 
         <ListingControls
           primaryColor={tenant.primaryColor}
           onAddListing={() => {
-            console.log("✅ Add Listing button clicked - Opening Modal");
+            console.log("✅ Opening Modal...");
             setIsModalOpen(true);
           }}
         />
 
         <main className="p-6">
-          <Listings
-            listings={listings}
-            tenantId={user?.tenantId ?? null}  // ✅ Ensure it’s never undefined
-            accessToken={user?.accessToken ?? null}  // ✅ Ensure it’s never undefined
-          />
+          <Listings listings={listings} tenantId={user?.tenantId ?? null} accessToken={user?.accessToken ?? null} />
         </main>
 
-        {/* ✅ Add Listing Modal */}
+        {/* ✅ Add Listing Modal - Now Always Opens */}
         {isModalOpen && (
-          <AddListingModal
-            onClose={() => {
-              console.log("❌ Closing Modal");
-              setIsModalOpen(false);
-            }}
-            onAdd={handleNewListing}
-            tenantId={user?.tenantId ?? null}
-            accessToken={user?.accessToken ?? null}
-          />
+          <>
+            {console.log("📌 Rendering Modal Now! isModalOpen =", isModalOpen)}
+            <AddListingModal
+              onClose={() => {
+                console.log("❌ Closing Modal");
+                setIsModalOpen(false);
+              }}
+              onAdd={handleNewListing}
+              tenantId={user?.tenantId ?? ""}
+              accessToken={user?.accessToken ?? ""}
+            />
+          </>
         )}
       </div>
     </div>

@@ -8,48 +8,60 @@ interface AddListingModalProps {
   accessToken: string | null;
 }
 
+const API_BASE_URL = "http://localhost:8000/api/v1";
+
 const AddListingModal: FC<AddListingModalProps> = ({ onClose, onAdd, tenantId, accessToken }) => {
+  // Form State
   const [brand, setBrand] = useState("");
   const [type, setType] = useState("");
   const [pricePerDay, setPricePerDay] = useState("");
   const [stateOfCharge, setStateOfCharge] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
-
+  const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Submit
+  // ✅ Handle Form Submission
   const handleSubmit = async () => {
-    if (!brand || !type || !pricePerDay || !stateOfCharge || !availableFrom) {
-      setError("Please fill in all fields!");
-      return;
-    }
+    console.log("🚀 Submitting Listing...");
+
     if (!tenantId || !accessToken) {
       setError("Tenant or authentication details missing.");
+      console.error("🚨 Missing Tenant ID or Access Token", { tenantId, accessToken });
       return;
     }
 
+    if (!brand || !type || !pricePerDay || !stateOfCharge || !availableFrom || photos.length === 0) {
+      setError("Please fill in all fields.");
+      console.warn("🚨 Form fields missing:", { brand, type, pricePerDay, stateOfCharge, availableFrom, photos });
+      return;
+    }
+
+    // ✅ Create FormData object
+    const formData = new FormData();
+    formData.append("brand", brand);
+    formData.append("type", type);
+    formData.append("price_per_day", pricePerDay);
+    formData.append("state_of_charge", stateOfCharge);
+    formData.append("available_from", availableFrom);
+
+    // ✅ Append multiple image files
+    photos.forEach((file) => {
+      formData.append("photos", file);
+    });
+
+    console.log("📤 Sending API Request to:", `${API_BASE_URL}/listings/${tenantId}/cars/create/`);
+    console.log("📦 FormData Payload:", formData);
+
     setLoading(true);
-    setError(null);
-
-    const newListing = {
-      brand,
-      type,
-      price_per_day: pricePerDay,
-      state_of_charge: stateOfCharge,
-      available_from: availableFrom,
-    };
-
     try {
-      console.log("🚀 Submitting New Listing:", newListing);
-
       const response = await axios.post(
-        `http://localhost:8000/api/v1/listings/${tenantId}/cars/create/`,
-        newListing,
+        `${API_BASE_URL}/listings/${tenantId}/cars/create/`,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data", // ✅ Must be multipart/form-data
           },
         }
       );
@@ -57,9 +69,9 @@ const AddListingModal: FC<AddListingModalProps> = ({ onClose, onAdd, tenantId, a
       console.log("✅ API Response:", response.data);
       onAdd(response.data);
       onClose();
-    } catch (error) {
-      console.error("❌ Error submitting listing:", error);
-      setError("Failed to add listing. Please try again.");
+    } catch (err: any) {
+      console.error("❌ API Error:", err);
+      setError(err.response?.data?.message || "Failed to create listing.");
     } finally {
       setLoading(false);
     }
@@ -77,21 +89,77 @@ const AddListingModal: FC<AddListingModalProps> = ({ onClose, onAdd, tenantId, a
         </div>
 
         {/* Error Message */}
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         {/* Form */}
         <div className="space-y-4">
-          <input type="text" placeholder="Car Brand" value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full p-2 border rounded-md" />
-          <input type="text" placeholder="Type" value={type} onChange={(e) => setType(e.target.value)} className="w-full p-2 border rounded-md" />
-          <input type="number" placeholder="Price per Day" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} className="w-full p-2 border rounded-md" />
-          <input type="number" placeholder="State of Charge" value={stateOfCharge} onChange={(e) => setStateOfCharge(e.target.value)} className="w-full p-2 border rounded-md" />
-          <input type="date" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} className="w-full p-2 border rounded-md" />
+          <input
+            type="text"
+            placeholder="Car Brand (e.g. Toyota)"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Car Type (e.g. SUV)"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="number"
+            placeholder="Price per Day ($)"
+            value={pricePerDay}
+            onChange={(e) => setPricePerDay(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="number"
+            placeholder="State of Charge (%)"
+            value={stateOfCharge}
+            onChange={(e) => setStateOfCharge(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          <input
+            type="date"
+            value={availableFrom}
+            onChange={(e) => setAvailableFrom(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+
+          {/* File Upload Input */}
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files) {
+                setPhotos(Array.from(e.target.files)); // ✅ Store selected files
+              }
+            }}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
         </div>
 
         {/* Actions */}
         <div className="flex justify-end space-x-4 mt-4">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
-          <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" disabled={loading}>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+            disabled={loading}
+          >
             {loading ? "Submitting..." : "Submit"}
           </button>
         </div>
