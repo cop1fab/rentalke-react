@@ -1,8 +1,10 @@
-import { Link } from "react-scroll";
+import { useNavigate } from "react-router-dom";
 import heroImage from "../assets/hero-image.png";
 import { FaPlay } from "react-icons/fa";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section
       id="home"
@@ -11,7 +13,7 @@ const Hero = () => {
       {/* Left Text Section */}
       <div className="max-w-lg text-left">
         <h3 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-          Manage your EV Rental <br /> Easily  with us
+          Manage your EV Rental <br /> Easily with us
         </h3>
         <p className="mt-4 text-gray-600 text-lg">
           Just list your electric <br /> vehicle with RentalsKE, <br />
@@ -20,23 +22,19 @@ const Hero = () => {
 
         {/* CTA Buttons */}
         <div className="mt-6 flex items-center space-x-4">
-          <Link
-            to="features"
-            smooth={true}
-            duration={800}
+          <button
+            onClick={() => navigate("/create-company")}
             className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg text-lg hover:bg-indigo-700 transition cursor-pointer"
           >
             Get Started
-          </Link>
-          <Link
-            to="why-choose-us"
-            smooth={true}
-            duration={800}
+          </button>
+          <a
+            href="#why-choose-us"
             className="px-6 py-3 border border-indigo-600 text-indigo-600 font-medium rounded-lg text-lg hover:bg-indigo-100 transition cursor-pointer flex items-center space-x-2"
           >
             <FaPlay className="text-indigo-600 text-sm" />
             <span>How it Works</span>
-          </Link>
+          </a>
         </div>
       </div>
 
