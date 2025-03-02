@@ -1,0 +1,17 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 304" width="1280" height="304">
+	<title>New Project</title>
+	<defs>
+		<image width="820" height="820" id="img1" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDEwIiBoZWlnaHQ9IjQxMCIgdmlld0JveD0iMCAwIDQxMCA0MTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMDUgNDEwQzMxOC4yMTggNDEwIDQxMCAzMTguMjE4IDQxMCAyMDVDNDEwIDkxLjc4MTYgMzE4LjIxOCAwIDIwNSAwQzkxLjc4MTYgMCAwIDkxLjc4MTYgMCAyMDVDMCAzMTguMjE4IDkxLjc4MTYgNDEwIDIwNSA0MTBaTTIwNSAzNjBDMjkwLjYwNCAzNjAgMzYwIDI5MC42MDQgMzYwIDIwNUMzNjAgMTE5LjM5NiAyOTAuNjA0IDUwIDIwNSA1MEMxMTkuMzk2IDUwIDUwIDExOS4zOTYgNTAgMjA1QzUwIDI5MC42MDQgMTE5LjM5NiAzNjAgMjA1IDM2MFoiIGZpbGw9IiM0RjQ2RTUiIC8+Cjwvc3ZnPgo="/>
+	</defs>
+	<style>
+		tspan { white-space:pre } 
+		.t0 { font-size: 220px;fill: #4f46e5;font-weight: 400;font-family: "Inter-Regular", "Inter" } 
+	</style>
+	<text id="" style="transform: matrix(1,0,0,1,144,71)" >
+	</text>
+	<text id="RentalsKE" style="transform: matrix(.882,0,0,.882,325.229,240.194)" >
+		<tspan x="0" y="0" class="t0">R</tspan><tspan  y="0" class="t0">e</tspan><tspan  y="0" class="t0">n</tspan><tspan  y="0" class="t0">t</tspan><tspan  y="0" class="t0">a</tspan><tspan  y="0" class="t0">l</tspan><tspan  y="0" class="t0">s</tspan><tspan  y="0" class="t0">K</tspan><tspan  y="0" class="t0">E</tspan><tspan  y="0" class="t0">
+</tspan>
+	</text>
+	<use id="logo" href="#img1" transform="matrix(.338,0,0,.339,41,21)"/>
+</svg>
