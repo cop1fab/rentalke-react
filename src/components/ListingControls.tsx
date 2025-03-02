@@ -3,16 +3,18 @@ import { FaFilter, FaFileImport, FaFileExport, FaPlus, FaSearch } from "react-ic
 
 interface ListingControlsProps {
   primaryColor: string;
+  onAddListing: () => void; // ✅ Ensure it's required and properly called
 }
 
-const ListingControls: FC<ListingControlsProps> = ({ primaryColor }) => {
+const ListingControls: FC<ListingControlsProps> = ({ primaryColor, onAddListing }) => {
   return (
     <div className="relative z-10">
       <div className="max-w-[90%] mx-auto bg-white shadow-lg rounded-xl py-4 px-6 flex items-center justify-between mt-4">
-        {/* Left: Users Count & Search Bar */}
+        {/* Left: Cars Count & Search Bar */}
         <div className="flex items-center space-x-6">
           <h3 className="text-lg font-semibold text-gray-800">
-            Cars Listed <span className="bg-gray-200 px-3 py-1 rounded-lg text-sm text-gray-600">18</span>
+            Cars Listed{" "}
+            <span className="bg-gray-200 px-3 py-1 rounded-lg text-sm text-gray-600">18</span>
           </h3>
 
           {/* Search Bar */}
@@ -26,7 +28,7 @@ const ListingControls: FC<ListingControlsProps> = ({ primaryColor }) => {
           </div>
         </div>
 
-        {/* Right: Controls */}
+        {/* Right: Action Controls */}
         <div className="flex items-center space-x-5">
           <button className="flex items-center space-x-2 bg-gray-100 px-5 py-2 rounded-lg text-gray-700 hover:bg-gray-200 transition">
             <FaFilter /> <span>Filter</span>
@@ -40,9 +42,14 @@ const ListingControls: FC<ListingControlsProps> = ({ primaryColor }) => {
             <FaFileExport /> <span>Export</span>
           </button>
 
+          {/* ✅ Add Listing Button - Opens Modal */}
           <button
             className="flex items-center space-x-2 px-6 py-3 rounded-lg text-white hover:brightness-90 transition"
             style={{ backgroundColor: primaryColor }}
+            onClick={() => {
+              console.log("✅ Add Listing button clicked"); // Debugging log
+              onAddListing(); // ✅ Calls the function to open modal
+            }}
           >
             <FaPlus /> <span>Add Listing</span>
           </button>
