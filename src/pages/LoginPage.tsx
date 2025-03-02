@@ -22,19 +22,24 @@ const Login = () => {
 
   // ✅ Load tenant branding from localStorage
   useEffect(() => {
-    const storedTenant = localStorage.getItem("company");
+    const storedTenant = localStorage.getItem("tenant"); // ✅ Fixed key name
     if (storedTenant) {
-      const parsedTenant = JSON.parse(storedTenant);
-      console.log("Loaded Tenant Data:", parsedTenant);
+      try {
+        const parsedTenant = JSON.parse(storedTenant);
+        console.log("✅ Loaded Tenant Data:", parsedTenant);
 
-      setTenantData({
-        name: parsedTenant.tenant?.name || "",
-        logo: parsedTenant.tenant?.logo || defaultLogo,
-        primaryColor: parsedTenant.tenant?.primary_color || "#4F46E5",
-      });
+        setTenantData({
+          name: parsedTenant?.name || "Your Company",
+          logo: parsedTenant?.logo && parsedTenant.logo !== "" ? parsedTenant.logo : defaultLogo, // ✅ Ensures valid logo
+          primaryColor: parsedTenant?.primary_color || "#4F46E5",
+        });
+      } catch (error) {
+        console.error("❌ Error parsing tenant data:", error);
+      }
     }
   }, []);
 
+  // ✅ Handle Login Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -46,18 +51,15 @@ const Login = () => {
     setLoading(true);
     setError(null);
 
-    const payload = {
-      email: phone,
-      password,
-    };
+    const payload = { email: phone, password };
 
     try {
-      console.log("Logging in with:", payload);
+      console.log("🔑 Logging in with:", payload);
       const response = await axios.post(API_URL, payload, {
         headers: { "Content-Type": "application/json" },
       });
 
-      console.log("API Response:", response.data);
+      console.log("✅ API Response:", response.data);
 
       // ✅ Store user & tenant details in localStorage
       localStorage.setItem("token", response.data.access);
@@ -67,12 +69,12 @@ const Login = () => {
       // ✅ Redirect user to dashboard
       navigate("/dashboard");
     } catch (err: any) {
-      console.error("Login Error:", err);
-      const errorMessage =
+      console.error("❌ Login Error:", err);
+      setError(
         err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Invalid credentials. Please try again.";
-      setError(errorMessage);
+          err.response?.data?.error ||
+          "Invalid credentials. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -89,16 +91,21 @@ const Login = () => {
       {/* Right Form Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-8 md:px-16">
         <div className="w-full max-w-md bg-white p-10 rounded-xl shadow-xl">
-          {/* ✅ Tenant Branding Logo */}
-          <div className="flex justify-start mb-6">
-            <img src={tenantData.logo} alt="Tenant Logo" className="h-10" />
+          {/* ✅ Tenant Branding Logo (Ensured it's properly fetched) */}
+          <div className="flex justify-center mb-6">
+            <img
+              src={tenantData.logo}
+              alt="Tenant Logo"
+              className="h-12 object-contain max-w-[150px]"
+              onError={(e) => (e.currentTarget.src = defaultLogo)} // ✅ Fallback to default logo
+            />
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back!</h1>
           <p className="text-gray-600 text-sm mb-6">Enter your phone number to log into your account.</p>
 
           {/* Error Message */}
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
           {/* Form */}
           <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
@@ -120,7 +127,7 @@ const Login = () => {
             {/* Forgot Password */}
             <div className="text-right text-sm">
               <a href="#" className="text-indigo-600 hover:underline">
-                Forgot Password
+                Forgot Password?
               </a>
             </div>
 
