@@ -36,10 +36,6 @@ const Dashboard = () => {
       const parsedUser = JSON.parse(storedUser);
       const parsedTenant = JSON.parse(storedTenant);
 
-      console.log("✅ Loaded User:", parsedUser);
-      console.log("✅ Loaded Tenant:", parsedTenant);
-      console.log("✅ Loaded Access Token:", accessToken);
-
       setUser({
         name: parsedUser.email,
         role: parsedUser.role || "CLIENT",
@@ -59,20 +55,13 @@ const Dashboard = () => {
     }
   }, []);
 
-  // ✅ Watch isModalOpen to confirm it's toggling
-  useEffect(() => {
-    console.log("📌 Modal Open State:", isModalOpen);
-  }, [isModalOpen]);
-
   // ✅ Fetch Listings
   const fetchListings = async (tenantId: number, token: string) => {
     try {
-      console.log("📥 Fetching listings for tenant ID:", tenantId);
       const response = await axios.get(`${API_BASE_URL}/listings/${tenantId}/cars/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setListings(response.data);
-      console.log("✅ Listings fetched successfully:", response.data);
     } catch (error) {
       console.error("❌ Error fetching listings:", error);
     }
@@ -80,8 +69,16 @@ const Dashboard = () => {
 
   // ✅ Handle New Listing Submission
   const handleNewListing = (newListing: any) => {
-    console.log("🚀 Adding new listing:", newListing);
     setListings((prevListings) => [newListing, ...prevListings]);
+  };
+
+  // ✅ Handle Listing Update
+  const handleUpdateListing = (updatedListing: any) => {
+    setListings((prevListings) =>
+      prevListings.map((listing) =>
+        listing.id === updatedListing.id ? updatedListing : listing
+      )
+    );
   };
 
   return (
@@ -92,30 +89,26 @@ const Dashboard = () => {
 
         <ListingControls
           primaryColor={tenant.primaryColor}
-          onAddListing={() => {
-            console.log("✅ Opening Modal...");
-            setIsModalOpen(true);
-          }}
+          onAddListing={() => setIsModalOpen(true)}
         />
 
         <main className="p-6">
-          <Listings listings={listings} tenantId={user?.tenantId ?? null} accessToken={user?.accessToken ?? null} />
+          <Listings
+            listings={listings}
+            tenantId={user?.tenantId ?? null}
+            accessToken={user?.accessToken ?? null}
+            onUpdateListing={handleUpdateListing} // ✅ Ensure update works properly
+          />
         </main>
 
-        {/* ✅ Add Listing Modal - Now Always Opens */}
+        {/* ✅ Add Listing Modal */}
         {isModalOpen && (
-          <>
-            {console.log("📌 Rendering Modal Now! isModalOpen =", isModalOpen)}
-            <AddListingModal
-              onClose={() => {
-                console.log("❌ Closing Modal");
-                setIsModalOpen(false);
-              }}
-              onAdd={handleNewListing}
-              tenantId={user?.tenantId ?? ""}
-              accessToken={user?.accessToken ?? ""}
-            />
-          </>
+          <AddListingModal
+            onClose={() => setIsModalOpen(false)}
+            onAdd={handleNewListing}
+            tenantId={user?.tenantId ?? ""}
+            accessToken={user?.accessToken ?? ""}
+          />
         )}
       </div>
     </div>
