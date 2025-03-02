@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaEllipsisV } from "react-icons/fa";
+import ListingDetailsModal from "./ListingDetailsModal";
 
 interface ListingsProps {
   listings: any[];
@@ -10,11 +11,28 @@ interface ListingsProps {
 
 const Listings: React.FC<ListingsProps> = ({ listings, primaryColor }) => {
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [selectedListing, setSelectedListing] = useState<any | null>(null);
+  const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // ✅ Handle Dropdown Toggle
+  // ✅ Toggle dropdown menu
   const toggleDropdown = (index: number) => {
     setOpenDropdown(openDropdown === index ? null : index);
   };
+
+  // ✅ Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown !== null) {
+        const clickedInside = dropdownRefs.current[openDropdown]?.contains(event.target as Node);
+        if (!clickedInside) {
+          setOpenDropdown(null);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDropdown]);
 
   return (
     <div className="max-w-[90%] mx-auto mt-6">
@@ -30,8 +48,14 @@ const Listings: React.FC<ListingsProps> = ({ listings, primaryColor }) => {
 
                 {/* Dropdown Menu */}
                 {openDropdown === index && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg border z-50">
-                    <button className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 w-full text-left">
+                  <div
+                    ref={(el) => (dropdownRefs.current[index] = el)}
+                    className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg border z-50"
+                  >
+                    <button
+                      className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 w-full text-left"
+                      onClick={() => setSelectedListing(listing)}
+                    >
                       View Details
                     </button>
                     <button className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 w-full text-left">
@@ -62,6 +86,11 @@ const Listings: React.FC<ListingsProps> = ({ listings, primaryColor }) => {
           <p className="text-gray-500 text-center">No listings available.</p>
         )}
       </div>
+
+      {/* ✅ Listing Details Modal */}
+      {selectedListing && (
+        <ListingDetailsModal listing={selectedListing} onClose={() => setSelectedListing(null)} />
+      )}
     </div>
   );
 };
