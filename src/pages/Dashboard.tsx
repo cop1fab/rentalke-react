@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import DashboardNavbar from "../components/DashboardHeader";
@@ -12,8 +12,11 @@ const API_BASE_URL = "http://localhost:8000/api/v1";
 
 const Dashboard = () => {
   const [tenant, setTenant] = useState({
+    id: null,
+    name: "Loading...",
     logo: defaultLogo,
     primaryColor: "#4F46E5",
+    secondaryColor: "#A5B4FC",
   });
 
   const [user, setUser] = useState<{
@@ -27,10 +30,11 @@ const Dashboard = () => {
   const [listings, setListings] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // ✅ Load Tenant & User Data from LocalStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedTenant = localStorage.getItem("tenant");
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("token");
 
     if (storedUser && storedTenant && accessToken) {
       const parsedUser = JSON.parse(storedUser);
@@ -49,8 +53,11 @@ const Dashboard = () => {
       });
 
       setTenant({
+        id: parsedTenant.id,
+        name: parsedTenant.name,
         logo: parsedTenant.logo || defaultLogo,
         primaryColor: parsedTenant.primary_color || "#4F46E5",
+        secondaryColor: parsedTenant.secondary_color || "#A5B4FC",
       });
 
       fetchListings(parsedTenant.id, accessToken);
@@ -98,6 +105,7 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar logo={tenant.logo} primaryColor={tenant.primaryColor} />
+
       <div className="flex flex-col flex-grow">
         <DashboardNavbar
           primaryColor={tenant.primaryColor}
@@ -129,7 +137,7 @@ const Dashboard = () => {
               console.log("❌ Closing Modal");
               setIsModalOpen(false);
             }}
-            onAdd={handleNewListing}
+            onAdd={handleNewListing} // ✅ Fix: Ensure "onAdd" is passed
             tenantId={user?.tenantId ?? ""}
             accessToken={user?.accessToken ?? ""}
           />

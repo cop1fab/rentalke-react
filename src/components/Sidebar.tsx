@@ -11,11 +11,11 @@ const Sidebar: React.FC<SidebarProps> = ({ logo, primaryColor }) => {
 
   return (
     <aside className="w-64 h-screen shadow-lg p-6 flex flex-col justify-between" style={{ backgroundColor: primaryColor }}>
-      {/* Logo */}
+      {/* ✅ Logo Section */}
       <div>
-        <img src={logo} alt="Tenant Logo" className="h-10 mb-6" />
+        <img src={logo} alt="Tenant Logo" className="h-10 mb-6 object-contain" onError={(e) => (e.currentTarget.src = "/src/assets/logo.svg")} />
 
-        {/* Navigation Links */}
+        {/* ✅ Navigation Links */}
         <nav>
           <ul className="space-y-4 text-white">
             <li className="flex items-center space-x-3 font-semibold">
@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ logo, primaryColor }) => {
         </nav>
       </div>
 
-      {/* Help & Settings */}
+      {/* ✅ Help & Settings */}
       <div className="space-y-4 text-white">
         <div className="flex items-center space-x-3 hover:opacity-75">
           <FaHeadset /> <span>Help Center</span>

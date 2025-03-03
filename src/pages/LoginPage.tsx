@@ -15,27 +15,38 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tenantData, setTenantData] = useState({
-    name: "",
+    id: null,
+    name: "Loading...",
     logo: defaultLogo,
     primaryColor: "#4F46E5",
+    secondaryColor: "#A5B4FC",
   });
 
   // ✅ Load tenant branding from localStorage
   useEffect(() => {
-    const storedTenant = localStorage.getItem("tenant"); // ✅ Fixed key name
+    const storedTenant = localStorage.getItem("tenant");
+
     if (storedTenant) {
       try {
         const parsedTenant = JSON.parse(storedTenant);
         console.log("✅ Loaded Tenant Data:", parsedTenant);
 
-        setTenantData({
-          name: parsedTenant?.name || "Your Company",
-          logo: parsedTenant?.logo && parsedTenant.logo !== "" ? parsedTenant.logo : defaultLogo, // ✅ Ensures valid logo
-          primaryColor: parsedTenant?.primary_color || "#4F46E5",
-        });
+        if (parsedTenant?.id && parsedTenant?.name) {
+          setTenantData({
+            id: parsedTenant.id,
+            name: parsedTenant.name,
+            logo: parsedTenant.logo || defaultLogo,
+            primaryColor: parsedTenant.primary_color || "#4F46E5",
+            secondaryColor: parsedTenant.secondary_color || "#A5B4FC",
+          });
+        } else {
+          console.warn("🚨 Tenant data missing required fields:", parsedTenant);
+        }
       } catch (error) {
-        console.error("❌ Error parsing tenant data:", error);
+        console.error("❌ Error parsing tenant data from localStorage:", error);
       }
+    } else {
+      console.warn("🚨 No tenant found in localStorage.");
     }
   }, []);
 
@@ -61,10 +72,20 @@ const Login = () => {
 
       console.log("✅ API Response:", response.data);
 
+      // ✅ Ensure the response has the correct tenant data
+      if (!response.data.tenant || !response.data.tenant.id) {
+        console.error("🚨 Tenant data is missing in API response:", response.data);
+        setError("Login successful, but tenant data is missing.");
+        return;
+      }
+
       // ✅ Store user & tenant details in localStorage
       localStorage.setItem("token", response.data.access);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("tenant", JSON.stringify(response.data.tenant));
+
+      console.log("✅ Stored User:", response.data.user);
+      console.log("✅ Stored Tenant:", response.data.tenant);
 
       // ✅ Redirect user to dashboard
       navigate("/dashboard");
@@ -72,8 +93,8 @@ const Login = () => {
       console.error("❌ Login Error:", err);
       setError(
         err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Invalid credentials. Please try again."
+        err.response?.data?.error ||
+        "Invalid credentials. Please try again."
       );
     } finally {
       setLoading(false);
@@ -91,7 +112,7 @@ const Login = () => {
       {/* Right Form Section */}
       <div className="w-full md:w-1/2 flex items-center justify-center px-8 md:px-16">
         <div className="w-full max-w-md bg-white p-10 rounded-xl shadow-xl">
-          {/* ✅ Tenant Branding Logo (Ensured it's properly fetched) */}
+          {/* ✅ Tenant Branding Logo */}
           <div className="flex justify-center mb-6">
             <img
               src={tenantData.logo}
@@ -102,7 +123,7 @@ const Login = () => {
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back!</h1>
-          <p className="text-gray-600 text-sm mb-6">Enter your phone number to log into your account.</p>
+          <p className="text-gray-600 text-sm mb-6">Enter your phone number to log into {tenantData.name}.</p>
 
           {/* Error Message */}
           {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
