@@ -1,80 +1,129 @@
-![reactjs-vite-tailwindcss-boilerplate](https://user-images.githubusercontent.com/16243531/217138979-b854309c-4742-4275-a705-f9fec5158217.jpg)
+RentalsKE Frontend
 
-# React Tailwindcss Boilerplate build with Vite
+🚀 Overview
 
-This is a boilerplate build with Vite, React 18, TypeScript, Vitest, Testing Library, TailwindCSS 3, Eslint and Prettier.
+This is the frontend application for RentalsKE, a multi-tenant SaaS platform that allows businesses to manage their rental listings. The frontend is built with React + TypeScript, styled using TailwindCSS, and communicates with a Django backend via API.
 
-## What is inside?
+📌 Features
 
-This project uses many tools like:
+✅ Multi-tenant branding (Custom Logo & Colors)
+✅ User Authentication (Login & Registration)
+✅ Role-based Access Control (Admin & Client)
+✅ Listing Management (Add, Edit, Delete, View Listings)
+✅ Responsive UI with TailwindCSS
+✅ API Integration with Django backend
 
-- [Vite](https://vitejs.dev)
-- [ReactJS](https://reactjs.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [Vitest](https://vitest.dev)
-- [Testing Library](https://testing-library.com)
-- [Tailwindcss](https://tailwindcss.com)
-- [Eslint](https://eslint.org)
-- [Prettier](https://prettier.io)
+🛠️ Tech Stack
+ • Frontend: React, TypeScript, Vite, TailwindCSS
+ • State Management: React Hooks (useState, useEffect)
+ • Routing: React Router
+ • HTTP Requests: Axios
+ • Authentication: JWT-based (Django backend)
+ • Deployment: Docker & Nginx
 
-## Getting Started
+⚙️ Installation & Setup
 
-### Install
+1️⃣ Clone the repository
 
-Create the project.
+git clone <https://github.com/your-username/rentalske-frontend.git>
+cd rentalske-frontend
 
-```bash
-pnpm dlx degit joaopaulomoraes/reactjs-vite-tailwindcss-boilerplate my-app
-```
+2️⃣ Install dependencies
 
-Access the project directory.
+yarn install
 
-```bash
-cd my-app
-```
+3️⃣ Start the development server
 
-Install dependencies.
+yarn run dev
 
-```bash
-pnpm install
-```
+ • The frontend will run on <http://localhost:3000>.
 
-Serve with hot reload at <http://localhost:5173>.
+🔌 API Configuration
 
-```bash
-pnpm run dev
-```
+The frontend communicates with the Django API at:
 
-### Lint
+<http://localhost:8000/api/v1/>
 
-```bash
-pnpm run lint
-```
+To modify the API URL, update src/config.ts:
 
-### Typecheck
+export const API_BASE_URL = "<http://localhost:8000/api/v1>";
 
-```bash
-pnpm run typecheck
-```
+🚀 Running with Docker
 
-### Build
+ 1. Build the Docker Image
 
-```bash
-pnpm run build
-```
+docker build -t rentalske-frontend .
 
-### Test
+ 2. Run the Container
 
-```bash
-pnpm run test
-```
+docker run -p 3000:80 rentalske-frontend
 
-View and interact with your tests via UI.
+ • The application will be accessible at <http://localhost:3000>.
 
-```bash
-pnpm run test:ui
-```
+🧑‍💻 Project Structure
 
-## License
+📂 src
+ ┣ 📂 assets           # Static images & logos
+ ┣ 📂 components       # Reusable UI components (Sidebar, Navbar, Buttons)
+ ┣ 📂 pages           # Main pages (Login, Register, Dashboard)
+ ┣ 📂 utils           # Helper functions
+ ┣ 📂 styles          # TailwindCSS styles
+ ┣ 📜 App.tsx         # Main application file
+ ┣ 📜 main.tsx        # Entry point
+ ┣ 📜 routes.tsx      # React Router configuration
+ ┗ 📜 config.ts       # API URL Configuration
 
-This project is licensed under the MIT License.
+👤 User Roles
+
+Role Permissions
+Admin Can manage all listings, users & tenants
+Client Can only manage their own listings
+
+🎨 Theming & Branding
+
+Each tenant gets:
+ • A unique logo
+ • Custom primary & secondary colors
+ • Data isolation per tenant
+
+💡 How it works:
+ • Tenant data is stored in localStorage
+ • On login, UI applies branding dynamically
+
+🔐 Authentication Flow
+
+ 1. User registers under a specific tenant
+ 2. Backend validates & assigns a JWT token
+ 3. Token is stored in localStorage
+ 4. Dashboard is loaded based on tenant theme
+
+🐛 Debugging
+
+1️⃣ Tenant not loading?
+ • Check if the tenant is stored in localStorage
+
+console.log(localStorage.getItem("tenant"));
+
+ • Ensure correct API response from /api/v1/auth/login/
+
+2️⃣ UI theme not updating?
+ • Refresh the page
+ • Make sure useEffect() properly loads tenant data
+ • Verify localStorage updates after login
+
+🚀 Future Improvements
+
+🔹 Multi-language support
+🔹 Mobile-friendly UI
+🔹 Advanced analytics dashboard
+🔹 Subdomain-based tenant routing
+
+👨‍💻 Contributors
+ • Copain Fabrice Bienaime (@cop1fab)
+ • Your Team Members
+
+📄 License
+
+This project is licensed under MIT License.
+
+🚀 Start your RentalsKE journey now! 🚀
