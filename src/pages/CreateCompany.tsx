@@ -20,7 +20,7 @@ const CreateCompany = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Validate logo before setting
+  // ✅ Validate logo before setting
   const handleLogoUpload = (file: File) => {
     const allowedFormats = ["image/png", "image/jpeg", "image/jpg"];
     const maxSize = 2 * 1024 * 1024; // 2MB
@@ -51,14 +51,11 @@ const CreateCompany = () => {
     setError(null);
 
     const formData = new FormData();
-    formData.append("name", companyName.trim()); // ✅ Change `domain` to `name`
+    formData.append("name", companyName.trim());
     formData.append("domain", domain.trim());
     formData.append("primary_color", primaryColor.trim());
     formData.append("secondary_color", secondaryColor.trim());
     formData.append("logo", logoFile);
-
-    // ✅ Debugging: Log FormData before sending
-    formData.forEach((value, key) => console.log(`${key}:`, value));
 
     try {
       const response = await axios.post(API_URL, formData, {
@@ -67,21 +64,29 @@ const CreateCompany = () => {
         },
       });
 
-      console.log("API Response:", response.data);
+      console.log("✅ API Response:", response.data);
 
-      // ✅ Save company data in LocalStorage
-      localStorage.setItem("company", JSON.stringify(response.data));
+      // ✅ Extract the full tenant object
+      const tenantData = response.data.tenant;
+
+      if (tenantData) {
+        console.log("✅ Saving Tenant in Local Storage:", tenantData);
+
+        // ✅ Save full tenant object
+        localStorage.setItem("tenant", JSON.stringify(tenantData));
+      } else {
+        console.warn("🚨 Tenant data missing from API response.");
+      }
 
       // ✅ Redirect to registration page
       navigate("/register");
     } catch (err: any) {
-      console.error("API Error:", err.response?.data);
+      console.error("❌ API Error:", err.response?.data);
       setError(err.response?.data?.name?.[0] || "Failed to create company. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <section className="w-full h-screen flex">
       {/* Left Image Section */}
